@@ -1,4 +1,4 @@
-import { PersistentMap, storage, context } from 'near-sdk-as'
+import { PersistentMap, storage, context, u128, PersistentUnorderedMap } from 'near-sdk-as'
 
 /**************************/
 /* DATA TYPES AND STORAGE */
@@ -6,6 +6,9 @@ import { PersistentMap, storage, context } from 'near-sdk-as'
 
 type AccountId = string
 type TokenId = u64
+
+type Price = u128
+const market = new PersistentUnorderedMap<TokenId, Price>('m')
 
 // Note that MAX_SUPPLY is implemented here as a simple constant
 // It is exported only to facilitate unit testing
@@ -134,4 +137,21 @@ export function mint_to(owner_id: AccountId): u64 {
   // return the tokenId – while typical change methods cannot return data, this
   // is handy for unit tests
   return tokenId
+}
+
+export function add_to_market(tokenId: TokenId, price: Price): boolean {
+  const caller = context.predecessor
+
+  //validate token owner
+  const owner = tokenToOwner.getSome(tokenId)
+  assert(owner == caller, ERROR_TOKEN_NOT_OWNED_BY_CALLER)
+
+  //set the price for sale
+  internal_add_to_market(tokenId, price)
+
+  return true
+}
+
+function internal_add_to_market(tokenId: TokenId, price: Price): void {
+  market.set(tokenId, price)
 }
