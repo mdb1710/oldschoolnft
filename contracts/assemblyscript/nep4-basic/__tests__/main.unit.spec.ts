@@ -1,4 +1,4 @@
-import { VMContext } from 'near-sdk-as'
+import { u128, VMContext } from 'near-sdk-as'
 
 // explicitly import functions required by spec
 import {
@@ -229,4 +229,42 @@ describe('nonSpec interface', () => {
       nonSpec.mint_to(alice)
     }).toThrow(nonSpec.ERROR_MAXIMUM_TOKEN_LIMIT_REACHED)
   })
+})
+
+describe('add_to_market', () => {
+    it('should add nft to market and return true', () => {
+        VMContext.setPredecessor_account_id(alice)
+        // mint new token that return its id
+        const tokenId = nonSpec.mint_to(alice)
+        // 1 NEAR
+        const price = u128.from('1000000000000000000000000')
+
+        expect(nonSpec.add_to_market(tokenId, price)).toBe(true)
+    })
+
+    it('should throw error if called by non owner', () => {
+        expect(() => {
+            VMContext.setPredecessor_account_id(alice)
+            // mint new token that return its id
+            const tokenId = nonSpec.mint_to(alice)
+            // 1 NEAR
+            const price = u128.from('1000000000000000000000000')
+
+            VMContext.setPredecessor_account_id(bob)
+            nonSpec.add_to_market(tokenId, price)
+        }).toThrow(nonSpec.ERROR_TOKEN_NOT_OWNED_BY_CALLER)
+    })
+})
+
+describe('get_market_price', () => {
+    it('return market price for a token', () => {
+        VMContext.setPredecessor_account_id(alice)
+        // mint new token that return its id
+        const tokenId = nonSpec.mint_to(alice)
+        // set price to be 1 NEAR
+        const price = u128.from('1000000000000000000000000')
+        nonSpec.add_to_market(tokenId, price)
+        // get the market price of tokenId
+        expect(nonSpec.get_market_price(tokenId)).toBe(price)
+    })
 })
