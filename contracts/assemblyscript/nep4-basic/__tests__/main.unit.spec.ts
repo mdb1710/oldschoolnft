@@ -268,3 +268,27 @@ describe('get_market_price', () => {
         expect(nonSpec.get_market_price(tokenId)).toBe(price)
     })
 })
+
+describe('remove_from_market', () => {
+    it('should remove nft from market and return true', () => {
+        VMContext.setPredecessor_account_id(alice)
+        // mint new token that return its id
+        const tokenId = nonSpec.mint_to(alice)
+        // 1 NEAR
+        const price = u128.from('1000000000000000000000000')
+        // add token to market
+        expect(nonSpec.add_to_market(tokenId, price)).toBe(true)
+        // remove token from market
+        expect(nonSpec.remove_from_market(tokenId)).toBe(true)
+    })
+
+    it('should throw error for nft available in market', () => {
+        expect(() => {
+            VMContext.setPredecessor_account_id(alice)
+            // mint new token that return its id
+            const tokenId = nonSpec.mint_to(alice)
+            // throw error when try to remove token id that was not listed
+            nonSpec.remove_from_market(tokenId)
+        }).toThrow(nonSpec.ERROR_TOKEN_NOT_IN_MARKET)
+    })
+})

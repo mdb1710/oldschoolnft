@@ -36,6 +36,7 @@ export const ERROR_CALLER_ID_DOES_NOT_MATCH_EXPECTATION = 'Caller ID does not ma
 export const ERROR_MAXIMUM_TOKEN_LIMIT_REACHED = 'Maximum token limit reached'
 export const ERROR_OWNER_ID_DOES_NOT_MATCH_EXPECTATION = 'Owner id does not match real token owner id'
 export const ERROR_TOKEN_NOT_OWNED_BY_CALLER = 'Token is not owned by the caller. Please use transfer_from for this scenario'
+export const ERROR_TOKEN_NOT_IN_MARKET = 'Token is not in market'
 
 /******************/
 /* CHANGE METHODS */
@@ -126,7 +127,8 @@ export function mint_to(owner_id: AccountId): u64 {
   const tokenId = storage.getPrimitive<u64>(TOTAL_SUPPLY, 1)
 
   // enforce token limits – not part of the spec but important!
-  assert(tokenId <= MAX_SUPPLY, ERROR_MAXIMUM_TOKEN_LIMIT_REACHED)
+  assert(tokenId <= MAX_SUPPLY, ERROR_MAXIMUM_TOKEN_Limport { ERROR_CALLER_ID_DOES_NOT_MATCH_EXPECTATION } from './main';
+IMIT_REACHED)
 
   // assign ownership
   tokenToOwner.set(tokenId, owner_id)
@@ -158,4 +160,26 @@ function internal_add_to_market(tokenId: TokenId, price: Price): void {
 
 export function get_market_price(tokenId: TokenId): Price {
   return market.getSome(tokenId)
+}
+
+export function remove_from_market(tokenId: TokenId): boolean {
+  const caller = context.predecessor
+
+  //validate token owner
+  const owner = tokenToOwner.getSome(tokenId)
+  const escrow = escrowAccess.get(owner)
+  assert(
+    [owner, escrow].includes(caller),
+    ERROR_CALLER_ID_DOES_NOT_MATCH_EXPECTATION
+  )
+
+  assert(market.getSome(tokenId), ERROR_TOKEN_NOT_IN_MARKET)
+
+  internal_remove_from_market(tokenId)
+
+  return true
+}
+
+function internal_remove_from_market(tokenId: TokenId): void {
+  market.delete(tokenId)
 }
