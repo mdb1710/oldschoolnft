@@ -127,9 +127,7 @@ export function mint_to(owner_id: AccountId): u64 {
   const tokenId = storage.getPrimitive<u64>(TOTAL_SUPPLY, 1)
 
   // enforce token limits – not part of the spec but important!
-  assert(tokenId <= MAX_SUPPLY, ERROR_MAXIMUM_TOKEN_Limport { ERROR_CALLER_ID_DOES_NOT_MATCH_EXPECTATION } from './main';
-IMIT_REACHED)
-
+  assert(tokenId <= MAX_SUPPLY, ERROR_MAXIMUM_TOKEN_LIMIT_REACHED)
   // assign ownership
   tokenToOwner.set(tokenId, owner_id)
 
